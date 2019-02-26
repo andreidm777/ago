@@ -34,8 +34,9 @@ func CustomMarshal(v interface{}) ([]byte, error) {
 	case reflect.Chan:
 		return nil, errors.New("dont support type")
 	case reflect.Map:
+        imap := val.Len()
 		buffer := bytes.NewBufferString("{")
-		for _, k := range val.MapKeys() {
+		for i, k := range val.MapKeys() {
 			tmp_key, err := CustomMarshal(k.Interface())
 			if err != nil {
 				return nil, err
@@ -44,7 +45,10 @@ func CustomMarshal(v interface{}) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			buffer.WriteString(fmt.Sprintf("%s: %s,", tmp_key, tmp_val))
+			buffer.WriteString(fmt.Sprintf("%s: %s", tmp_key, tmp_val))
+            if i < imap - 1 {
+                buffer.WriteString(",")
+            }
 		}
 		buffer.WriteString("}")
 		return buffer.Bytes(), nil
