@@ -249,17 +249,29 @@ func (connMulti *ConnectionMulti) Upsert(space interface{}, tuple, ops interface
 }
 
 func (connMulti *ConnectionMulti) Call(functionName string, args interface{}) (resp *tarantool.Response, err error) {
-    for i := 0; i < len(connMulti.addrs); i++ {
-        resp, err = connMulti.getConnectionByNum(i).Call(functionName, args)
-        if err == nil {
-            break
+    resp, err = connMulti.getCurrentConnection().Call(functionName, args)
+    if err != nil {
+        for i := 0; i < len(connMulti.addrs); i++ {
+            resp, err = connMulti.getConnectionByNum(i).Call(functionName, args)
+            if err == nil {
+                break
+            }
         }
     }
 	return resp, err
 }
 
 func (connMulti *ConnectionMulti) Call17(functionName string, args interface{}) (resp *tarantool.Response, err error) {
-	return connMulti.getCurrentConnection().Call17(functionName, args)
+    resp, err = connMulti.getCurrentConnection().Call17(functionName, args)
+    if err != nil {
+        for i := 0; i < len(connMulti.addrs); i++ {
+            resp, err = connMulti.getConnectionByNum(i).Call17(functionName, args)
+            if err == nil {
+                break
+            }
+        }
+    }
+	return resp, err
 }
 
 func (connMulti *ConnectionMulti) Eval(expr string, args interface{}) (resp *tarantool.Response, err error) {
