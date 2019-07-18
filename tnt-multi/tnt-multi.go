@@ -178,13 +178,11 @@ func (connMulti *ConnectionMulti) Next() *ConnectionMulti {
 	connMulti.mutex.RLock()
 	defer connMulti.mutex.RUnlock()
     
-    if connMulti.current {
-        conn := connMulti.getConnectionByNum( connMulti.current + 1 )
-        if conn == nil {
-            connMulti.getConnectionByNum( 0 )
-        }
+    conn := connMulti.getConnectionByNum( connMulti.current + 1 )
+    if conn == nil {
+        connMulti.getConnectionByNum( 0 )
     }
-    
+        
     return connMulti
 }
 
