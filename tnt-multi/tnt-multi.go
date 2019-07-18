@@ -160,17 +160,19 @@ func (connMulti *ConnectionMulti) checker() {
 func (connMulti *ConnectionMulti) getCurrentConnection() *tarantool.Connection {
 	connMulti.mutex.RLock()
 	defer connMulti.mutex.RUnlock()
-
-	for i, addr := range connMulti.addrs {
-		conn := connMulti.pool[addr]
-		if conn != nil {
-			if conn.ConnectedNow() {
-				return conn
-			}
-			connMulti.fallback = conn
-			connMulti.current = i
-		}
-	}
+    
+    if connMulti.fallback == nil {
+        for i, addr := range connMulti.addrs {
+            conn := connMulti.pool[addr]
+            if conn != nil {
+                if conn.ConnectedNow() {
+                    return conn
+                }
+                connMulti.fallback = conn
+                connMulti.current = i
+            }
+        }
+    }
 	return connMulti.fallback
 }
 
