@@ -165,11 +165,12 @@ func (connMulti *ConnectionMulti) getCurrentConnection() *tarantool.Connection {
         for i, addr := range connMulti.addrs {
             conn := connMulti.pool[addr]
             if conn != nil {
+                connMulti.fallback = conn
+                connMulti.current = i
                 if conn.ConnectedNow() {
                     return conn
                 }
-                connMulti.fallback = conn
-                connMulti.current = i
+
             }
         }
     }
@@ -198,11 +199,11 @@ func (connMulti *ConnectionMulti) getConnectionByNum( num int ) *tarantool.Conne
 
     conn := connMulti.pool[connMulti.addrs[num]]
 	if conn != nil {
+        connMulti.fallback = conn
+		connMulti.current  = num
 	    if conn.ConnectedNow() {
 		    return conn
 		}
-		connMulti.fallback = conn
-		connMulti.current  = num
 	}
 	return connMulti.fallback
 }
