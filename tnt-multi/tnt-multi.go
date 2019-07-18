@@ -30,6 +30,7 @@ type ConnectionMulti struct {
 	control  chan struct{}
 	pool     map[string]*tarantool.Connection
 	fallback *tarantool.Connection
+	current  int
 }
 
 var _ = tarantool.Connector(&ConnectionMulti{}) // check compatibility with connector interface
@@ -160,16 +161,31 @@ func (connMulti *ConnectionMulti) getCurrentConnection() *tarantool.Connection {
 	connMulti.mutex.RLock()
 	defer connMulti.mutex.RUnlock()
 
-	for _, addr := range connMulti.addrs {
+	for i, addr := range connMulti.addrs {
 		conn := connMulti.pool[addr]
 		if conn != nil {
 			if conn.ConnectedNow() {
 				return conn
 			}
 			connMulti.fallback = conn
+			connMulti.current = i
 		}
 	}
 	return connMulti.fallback
+}
+
+func (connMulti *ConnectionMulti) Next() *ConnectionMulti {
+	connMulti.mutex.RLock()
+	defer connMulti.mutex.RUnlock()
+    
+    if connMulti.current {
+        conn := connMulti.getConnectionByNum( connMulti.current + 1 )
+        if conn == nil {
+            connMulti.getConnectionByNum( 0 )
+        }
+    }
+    
+    return connMulti
 }
 
 func (connMulti *ConnectionMulti) getConnectionByNum( num int ) *tarantool.Connection {
@@ -186,6 +202,7 @@ func (connMulti *ConnectionMulti) getConnectionByNum( num int ) *tarantool.Conne
 		    return conn
 		}
 		connMulti.fallback = conn
+		connMulti.current  = num
 	}
 	return connMulti.fallback
 }
