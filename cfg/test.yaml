@@ -1,1 +1,6 @@
-test: 100
+test: 1000
+test_1:
+    - 3
+    - 4
+test_2: true
+test_3: "adadad"
