@@ -1,7 +1,7 @@
 package cfg
 
 import (
-    //"fmt"
+    "fmt"
     log "github.com/sirupsen/logrus"
     "io/ioutil"
 	"os"
@@ -60,6 +60,22 @@ func typeBuild(v interface{}, val ParamValue) {
     }
 }
 
+func subParser(values *map[string]interface{}, prefix *string) {
+    for k, v := range *values {
+            if prefix != nil {
+                k = fmt.Sprintf("%s.%s", *prefix, k)
+            }
+            if reflect.TypeOf(v).Kind() == reflect.Map {
+                valuesIn, _ := v.(map[string]interface{})
+                subParser(&valuesIn, &k)
+            } else if val, ok := config.bindings[k]; ok {
+                if reflect.TypeOf(v).Kind() == val.t {
+                    typeBuild(v, val)
+                }
+            }
+    }
+}
+        
 func Parse(filename string) error {
     config.Fname = filename
 	file, err   := os.Open(config.Fname)
@@ -80,13 +96,7 @@ func Parse(filename string) error {
     
     err = yaml.Unmarshal(buffer, &values)
     if err == nil {
-        for k, v := range values {
-             if val, ok := config.bindings[k]; ok {
-                if reflect.TypeOf(v).Kind() == val.t {
-                    typeBuild(v, val)
-                }
-            }
-        }
+        subParser(&values, nil)
     }
     log.Warn("parse success")
     return err
