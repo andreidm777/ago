@@ -1,5 +1,3 @@
 module github.com/andreidm777/ago
 
-go 1.12
-
-require github.com/tarantool/go-tarantool v0.0.0-20191229181800-f4ece3508d87
+go 1.13
