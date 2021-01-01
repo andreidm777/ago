@@ -1,4 +1,4 @@
-module ago
+module github.com/andreidm777/ago
 
 go 1.12
 
